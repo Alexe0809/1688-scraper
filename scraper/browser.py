@@ -1,21 +1,5 @@
 from playwright.sync_api import sync_playwright, TimeoutError
-
-
-def get_product_title(page):
-    h1_elements = page.locator("h1")
-    count = h1_elements.count()
-
-    print(f"H1 count: {count}")
-
-    for i in range(count):
-        text = h1_elements.nth(i).inner_text().strip()
-
-        print(f"H1 {i}: {text}")
-
-        if len(text) > 20:
-            return text
-
-    return None
+from scraper.product import get_product_title, get_product_price
 
 
 def open_browser(url: str):
@@ -52,7 +36,16 @@ def open_browser(url: str):
         else:
             print("\nProduct title not found")
 
+        price = get_product_price(page)
+
+        if price:
+            print("\nProduct price:", price)
+        else:
+            print("\nProduct price not found")
+
         input("Press Enter...")
+
+
 
         browser.close()
 
