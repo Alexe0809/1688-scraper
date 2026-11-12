@@ -1,6 +1,20 @@
 from playwright.sync_api import sync_playwright, TimeoutError
-from scraper.product import get_product_title, get_product_price
+from scraper.product import (
+    get_product_title,
+    get_product_price,
+    get_product_weight,
+    get_product_colors,
+    get_sizes,
+    colors_variants,
+)
 
+def is_verification_page(page):
+    text = page.locator("body").inner_text().lower()
+
+    return (
+        "please drag the slider to verify" in text
+        or "verify to ensure normal access" in text
+    )
 
 def open_browser(url: str):
 
@@ -29,6 +43,11 @@ def open_browser(url: str):
 
         page.wait_for_timeout(5000)
 
+        if is_verification_page(page):
+            print("Verification page detected")
+        else:
+            print("Normal product page")
+
         title = get_product_title(page)
 
         if title:
@@ -42,6 +61,17 @@ def open_browser(url: str):
             print("\nProduct price:", price)
         else:
             print("\nProduct price not found")
+
+        weight = get_product_weight(page)
+
+        if weight:
+            print("\nProduct weight:", weight)
+        else:
+            print("\nProduct weight not found")
+
+        colors_variants(page)
+        print("\nColors variants:")
+        print(colors_variants(page))
 
         input("Press Enter...")
 
