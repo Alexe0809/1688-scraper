@@ -3,10 +3,12 @@ from scraper.product import (
     get_product_title,
     get_product_price,
     get_product_weight,
-    get_product_colors,
-    get_sizes,
     colors_variants,
+    get_product_images
 )
+from pathlib import Path
+
+USER_DATA_DIR = Path('userDataDir')
 
 def is_verification_page(page):
     text = page.locator("body").inner_text().lower()
@@ -20,12 +22,12 @@ def open_browser(url: str):
 
     with sync_playwright() as p:
 
-        browser = p.chromium.launch(
+        context = p.chromium.launch_persistent_context(USER_DATA_DIR,
             headless=False,
             executable_path="/usr/bin/google-chrome",
         )
 
-        page = browser.new_page()
+        page = context.new_page()
 
         print("Opening:", url)
 
@@ -57,6 +59,8 @@ def open_browser(url: str):
 
         price = get_product_price(page)
 
+        print(get_product_images(page))
+
         if price:
             print("\nProduct price:", price)
         else:
@@ -69,14 +73,11 @@ def open_browser(url: str):
         else:
             print("\nProduct weight not found")
 
-        colors_variants(page)
         print("\nColors variants:")
         print(colors_variants(page))
 
         input("Press Enter...")
 
-
-
-        browser.close()
+        context.close()
 
         return title

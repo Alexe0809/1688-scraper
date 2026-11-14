@@ -2,7 +2,7 @@ import json
 from playwright.sync_api import TimeoutError
 
 def get_product_title(page):
-    h1_elements = page.locator("h1")
+    h1_elements = page.locator(".title-content h1")
     count = h1_elements.count()
 
     print(f"H1 count: {count}")
@@ -35,7 +35,9 @@ def get_product_price(page):
 def colors_variants(page):
     colors = page.locator("button.sku-filter-button")
 
-    colors_variants = {}
+    result = []
+    
+    
 
     for i in range(colors.count()):
 
@@ -48,6 +50,8 @@ def colors_variants(page):
         color_button = colors.nth(i)
 
         color_name = color_button.locator(".label-name").inner_text().strip()
+
+        
 
         print(f"\nSelecting color: {color_name}")
 
@@ -70,14 +74,15 @@ def colors_variants(page):
 
         sizes = get_sizes(page)
 
-        colors_variants[color_name] = sizes
+        for size in sizes:
+            my_dict = {}
+            my_dict["color"] = color_name
+            my_dict['size'] = size['size']
+            my_dict['stock'] = size['stock']
+            result.append(my_dict)
 
-    return colors_variants
+    return result
         
-
-# def get_product_variants(page):
-#         ...
-
 def get_product_weight(page):
     weight_elements = page.locator("td.field-value")
 
@@ -88,17 +93,6 @@ def get_product_weight(page):
             return value
 
     return None
-
-def get_product_colors(page):
-    colors = page.locator("button.sku-filter-button .label-name")
-
-    result = []
-
-    for i in range(colors.count()):
-        color = colors.nth(i).inner_text().strip()
-        result.append(color)
-
-    return result
 
 def get_sizes(page):
     size_items = page.locator(".expand-view-item")
@@ -124,3 +118,17 @@ def get_sizes(page):
         })
 
     return result
+
+def get_product_images(page):
+    images = page.locator("img.preview-img")
+    count = images.count()
+
+    result = []
+
+    for i in range(count):
+        result.append(images.nth(i).get_attribute("src"))
+
+    print(f"Images count: {count}")
+    return result
+
+
