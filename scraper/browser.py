@@ -20,64 +20,99 @@ def is_verification_page(page):
 
 def open_browser(url: str):
 
-    with sync_playwright() as p:
+    for attempt in range(1, 3):
 
-        context = p.chromium.launch_persistent_context(USER_DATA_DIR,
-            headless=False,
-            executable_path="/usr/bin/google-chrome",
-        )
+        full_data = {}
 
-        page = context.new_page()
+        with sync_playwright() as p:
 
-        print("Opening:", url)
-
-        try:
-            page.goto(
-                url,
-                wait_until="commit",
-                timeout=15000
+            context = p.chromium.launch_persistent_context(USER_DATA_DIR,
+                headless=False,
+                executable_path="/usr/bin/google-chrome",
             )
 
-            print("Commit received")
+            page = context.new_page()
 
-        except TimeoutError:
-            print("Navigation timeout")
+            print("Opening:", url)
 
-        page.wait_for_timeout(5000)
+            try:
+                page.goto(
+                    url,
+                    wait_until="commit",
+                    timeout=15000
+                )
 
-        if is_verification_page(page):
-            print("Verification page detected")
-        else:
-            print("Normal product page")
+                print("Commit received")
 
-        title = get_product_title(page)
+            except TimeoutError:
+                print("Navigation timeout")
 
-        if title:
-            print("\nProduct title:", title)
-        else:
-            print("\nProduct title not found")
+            page.wait_for_timeout(5000)
 
-        price = get_product_price(page)
+            if is_verification_page(page):
+                print("Verification page detected")
+            else:
+                print("Normal product page")
 
-        print(get_product_images(page))
+            title = get_product_title(page)
 
-        if price:
-            print("\nProduct price:", price)
-        else:
-            print("\nProduct price not found")
+            if title:
+                print("\nProduct title:", title)
+            else:
+                print("\nProduct title not found")
 
-        weight = get_product_weight(page)
+            price = get_product_price(page)
 
-        if weight:
-            print("\nProduct weight:", weight)
-        else:
-            print("\nProduct weight not found")
+            images = get_product_images(page)
 
-        print("\nColors variants:")
-        print(colors_variants(page))
+            print(images)
 
-        input("Press Enter...")
+            if price:
+                print("\nProduct price:", price)
+            else:
+                print("\nProduct price not found")
 
-        context.close()
+            weight = get_product_weight(page)
 
-        return title
+            if weight:
+                print("\nProduct weight:", weight)
+            else:
+                print("\nProduct weight not found")
+
+            print("\nColors variants:")
+
+            variants = colors_variants(page)
+            print(variants)
+
+            input("Press Enter...")
+
+            full_data['title'] = title
+            full_data['price'] = price
+            full_data['weight'] = weight
+            full_data['images'] = images
+            full_data['variants'] = variants
+
+            context.close()
+
+        is_valid, error = check_full_data(full_data)
+
+        if is_valid:
+
+            return full_data
+
+        print(f"Attempt {attempt} failed: {error}")
+
+        return {
+            "data": full_data,
+            "error": error,
+        }
+
+
+
+def check_full_data(data):
+    for key, value in data.items():
+        if value is None:
+            return False, key
+    return True, None
+    
+    

@@ -27,6 +27,7 @@ def get_product_price(page):
         return None
 
     price = price_elements.first.inner_text()
+    print(f"Raw price: {repr(price)}")
     price = price.replace("\n", "").strip()
 
     return price
